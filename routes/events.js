@@ -62,7 +62,7 @@ router.get('/:id', [param('id').isInt({ min: 1 }).toInt()], async (req, res) => 
 const eventValidation = [
   body('date').isISO8601().toDate(),
   body('type').isIn(['inv', 'del', 'evt']),
-  body('description').trim().notEmpty().isLength({ max: 1024 }),
+  body('description').trim().isLength({ max: 1024 }),
   body('delivery_point').optional({ nullable: true }).isIn(['prt', 'arc', 'mrn', null]),
   body('deadline').optional({ nullable: true }).isISO8601(),
 ];

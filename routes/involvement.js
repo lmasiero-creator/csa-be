@@ -31,8 +31,8 @@ router.get('/', [query('event_id').optional().isInt({ min: 1 }).toInt()], async 
 router.post('/', [
   body('event_id').isInt({ min: 1 }).toInt(),
   body('quota_owner_id').isInt({ min: 1 }).toInt(),
-  body('participants').isArray({ min: 1 }),
-  body('participants.*').trim().notEmpty().isLength({ max: 256 }),
+  body('participants').isArray({ min: 0 }),
+  body('participants.*').trim().isLength({ max: 256 }),
   body('duration').optional({ nullable: true }).isLength({ max: 512 }),
   body('pranzo').optional({ nullable: true }).isLength({ max: 512 }),
 ], async (req, res) => {
