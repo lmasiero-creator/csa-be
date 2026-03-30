@@ -11,12 +11,44 @@ const dns = require('dns');
 // Force IPv4 DNS resolution — Render free tier cannot reach IPv6 addresses.
 // Must be called before any Pool is created.
 dns.setDefaultResultOrder('ipv4first');
+console.log('[pool] dns.setDefaultResultOrder set to ipv4first');
 
-const pool = process.env.DATABASE_URL
-  ? new Pool({
-      connectionString: process.env.DATABASE_URL,
-      ssl: { rejectUnauthorized: false }, // required by Supabase / Render
-    })
-  : null;
+let pool = null;
+
+if (process.env.DATABASE_URL) {
+  // Log the host being connected to (mask credentials)
+  try {
+    const u = new URL(process.env.DATABASE_URL);
+    console.log(`[pool] DATABASE_URL detected — host: ${u.hostname}, port: ${u.port}`);
+
+    // Resolve the hostname manually so we can log what IP will be used
+    dns.lookup(u.hostname, { family: 0, all: true }, (err, addresses) => {
+      if (err) {
+        console.error('[pool] dns.lookup error:', err.message);
+      } else {
+        console.log('[pool] dns.lookup results:', JSON.stringify(addresses));
+      }
+    });
+  } catch (e) {
+    console.error('[pool] Could not parse DATABASE_URL:', e.message);
+  }
+
+  pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false },
+  });
+
+  // Test the connection at startup and log the outcome
+  pool.connect((err, client, release) => {
+    if (err) {
+      console.error('[pool] startup connection test FAILED:', err.message);
+    } else {
+      console.log('[pool] startup connection test OK');
+      release();
+    }
+  });
+} else {
+  console.log('[pool] No DATABASE_URL — running in mock mode');
+}
 
 module.exports = pool;
