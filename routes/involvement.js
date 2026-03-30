@@ -1,5 +1,5 @@
 const express = require('express');
-const { body, query } = require('express-validator');
+const { body, query, param } = require('express-validator');
 const { validationResult } = require('express-validator');
 const { involvementSubscriptions, events, quotaOwners, nextId } = require('../mock/data');
 
@@ -45,6 +45,18 @@ router.post('/', [
   };
   involvementSubscriptions.push(newSub);
   res.status(201).json(newSub);
+});
+
+// DELETE /api/involvement/:id
+router.delete('/:id', [param('id').isInt({ min: 1 }).toInt()], (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ message: 'Invalid id' });
+
+  const idx = involvementSubscriptions.findIndex((s) => s.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ message: 'Subscription not found' });
+
+  involvementSubscriptions.splice(idx, 1);
+  res.status(204).end();
 });
 
 module.exports = router;
