@@ -34,7 +34,10 @@ app.use('/api/delivery-changes', require('./routes/delivery-changes'));
 app.use('/api/job',              require('./routes/job'));
 
 // ── Health check ──────────────────────────────────────────────────────────────
-app.get('/health', (_req, res) => res.json({ status: 'ok', mode: 'mock' }));
+app.get('/health', (_req, res) => res.json({
+  status: 'ok',
+  mode: process.env.DATABASE_URL ? 'db' : 'mock',
+}));
 
 // ── 404 handler ───────────────────────────────────────────────────────────────
 app.use((_req, res) => res.status(404).json({ message: 'Not found' }));
