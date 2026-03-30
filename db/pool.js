@@ -11,6 +11,7 @@ const pool = process.env.DATABASE_URL
   ? new Pool({
       connectionString: process.env.DATABASE_URL,
       ssl: { rejectUnauthorized: false }, // required by Supabase / Render
+      family: 4, // force IPv4 — Render free tier has no IPv6 outbound
     })
   : null;
 
