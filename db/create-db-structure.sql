@@ -161,49 +161,151 @@ CREATE TABLE google_config (
 
 -- ── quota_owners ─────────────────────────────────────────────────────────────
 
-INSERT INTO quota_owners (id, name, surname, quota, email, phone_prefix, phone) VALUES
-  (1, 'Marco',  'Rossi',   'quota_intera', 'marco.rossi@example.com',   '+39', '3331234567'),
-  (2, 'Giulia', 'Bianchi', 'mezza_quota',  'giulia.bianchi@example.com', '+39', '3339876543'),
-  (3, 'Luigi',  'Ferrari', 'quota_intera', 'luigi.ferrari@example.com',  '+39', '3355551234'),
-  (4, 'Sofia',  'Conti',   'mezza_quota',  'sofia.conti@example.com',    '+39', '3371112233');
-
-SELECT setval('quota_owners_id_seq', (SELECT MAX(id) FROM quota_owners));
+INSERT INTO quota_owners (name, surname, quota, email, phone_prefix, phone) VALUES
+  ('Marco',  'Rossi',   'quota_intera', 'marco.rossi@example.com',   '+39', '3331234567'),
+  ('Giulia', 'Bianchi', 'mezza_quota',  'giulia.bianchi@example.com', '+39', '3339876543'),
+  ('Luigi',  'Ferrari', 'quota_intera', 'luigi.ferrari@example.com',  '+39', '3355551234'),
+  ('Sofia',  'Conti',   'mezza_quota',  'sofia.conti@example.com',    '+39', '3371112233');
 
 -- ── accounts ─────────────────────────────────────────────────────────────────
 
-INSERT INTO accounts (id, quota_owner_id, description, photo_data) VALUES
-  (1, 1, 'Appassionato di agricoltura biologica.', NULL);
-
-SELECT setval('accounts_id_seq', (SELECT MAX(id) FROM accounts));
+INSERT INTO accounts (quota_owner_id, description, photo_data) VALUES
+  (1, 'Appassionato di agricoltura biologica.', NULL);
 
 -- ── events ───────────────────────────────────────────────────────────────────
 
-INSERT INTO events (id, date, type, description, delivery_point, deadline) VALUES
-  (1, '2026-04-05', 'inv', 'Raccolta piselli. Consiglio: porta l''impermeabile', NULL,  NULL),
-  (2, '2026-04-07', 'del', 'Consegna settimanale — Portello',                   'prt', '2026-04-05'),
-  (3, '2026-04-12', 'inv', 'Trapianto pomodori',                                 NULL,  NULL),
-  (4, '2026-04-14', 'del', 'Consegna settimanale — Arcella',                    'arc', '2026-04-12'),
-  (5, '2026-04-15', 'evt', 'Assemblea soci',                                     NULL,  NULL),
-  (6, '2026-04-21', 'del', 'Consegna settimanale — Mirano',                     'mrn', '2026-04-19'),
-  (7, '2026-05-03', 'inv', 'Raccolta fragole',                                   NULL,  NULL),
-  (8, '2026-05-06', 'del', 'Consegna settimanale — Portello',                   'prt', '2026-05-04');
+INSERT INTO events (date, type, description, delivery_point, deadline) VALUES
+  ('2026-04-15', 'inv', 'trapianti', NULL,  NULL),
+  ('2026-04-12', 'inv', 'sistemazione serre', NULL,  NULL),
+  ('2026-03-29', 'evt', 'Asta CSA', NULL,  NULL);
 
-SELECT setval('events_id_seq', (SELECT MAX(id) FROM events));
+-- ── Weekly Wednesday deliveries (Picchetto) — May 13 → Dec 30, 2026 ──────────
+-- Dates are stored in UTC. Italy is CEST (UTC+2) until 25 Oct, CET (UTC+1) after.
+-- Event time: 18:00 Rome → 16:00 UTC (CEST) / 17:00 UTC (CET)
+-- Deadline:   Monday 22:00 Rome → 20:00 UTC (CEST) / 21:00 UTC (CET)
+
+INSERT INTO events (date, type, description, delivery_point, deadline, google_event_id, created_at) VALUES
+-- CEST (UTC+2): May 13 → Oct 21
+  ('2026-05-13 16:00:00+00', 'del', 'picchetto', 'prt', '2026-05-11 20:00:00+00', NULL, NOW()),
+  ('2026-05-20 16:00:00+00', 'del', 'picchetto', 'prt', '2026-05-18 20:00:00+00', NULL, NOW()),
+  ('2026-05-27 16:00:00+00', 'del', 'picchetto', 'prt', '2026-05-25 20:00:00+00', NULL, NOW()),
+  ('2026-06-03 16:00:00+00', 'del', 'picchetto', 'prt', '2026-06-01 20:00:00+00', NULL, NOW()),
+  ('2026-06-10 16:00:00+00', 'del', 'picchetto', 'prt', '2026-06-08 20:00:00+00', NULL, NOW()),
+  ('2026-06-17 16:00:00+00', 'del', 'picchetto', 'prt', '2026-06-15 20:00:00+00', NULL, NOW()),
+  ('2026-06-24 16:00:00+00', 'del', 'picchetto', 'prt', '2026-06-22 20:00:00+00', NULL, NOW()),
+  ('2026-07-01 16:00:00+00', 'del', 'picchetto', 'prt', '2026-06-29 20:00:00+00', NULL, NOW()),
+  ('2026-07-08 16:00:00+00', 'del', 'picchetto', 'prt', '2026-07-06 20:00:00+00', NULL, NOW()),
+  ('2026-07-15 16:00:00+00', 'del', 'picchetto', 'prt', '2026-07-13 20:00:00+00', NULL, NOW()),
+  ('2026-07-22 16:00:00+00', 'del', 'picchetto', 'prt', '2026-07-20 20:00:00+00', NULL, NOW()),
+  ('2026-07-29 16:00:00+00', 'del', 'picchetto', 'prt', '2026-07-27 20:00:00+00', NULL, NOW()),
+  ('2026-08-05 16:00:00+00', 'del', 'picchetto', 'prt', '2026-08-03 20:00:00+00', NULL, NOW()),
+  ('2026-08-12 16:00:00+00', 'del', 'picchetto', 'prt', '2026-08-10 20:00:00+00', NULL, NOW()),
+  ('2026-08-19 16:00:00+00', 'del', 'picchetto', 'prt', '2026-08-17 20:00:00+00', NULL, NOW()),
+  ('2026-08-26 16:00:00+00', 'del', 'picchetto', 'prt', '2026-08-24 20:00:00+00', NULL, NOW()),
+  ('2026-09-02 16:00:00+00', 'del', 'picchetto', 'prt', '2026-08-31 20:00:00+00', NULL, NOW()),
+  ('2026-09-09 16:00:00+00', 'del', 'picchetto', 'prt', '2026-09-07 20:00:00+00', NULL, NOW()),
+  ('2026-09-16 16:00:00+00', 'del', 'picchetto', 'prt', '2026-09-14 20:00:00+00', NULL, NOW()),
+  ('2026-09-23 16:00:00+00', 'del', 'picchetto', 'prt', '2026-09-21 20:00:00+00', NULL, NOW()),
+  ('2026-09-30 16:00:00+00', 'del', 'picchetto', 'prt', '2026-09-28 20:00:00+00', NULL, NOW()),
+  ('2026-10-07 16:00:00+00', 'del', 'picchetto', 'prt', '2026-10-05 20:00:00+00', NULL, NOW()),
+  ('2026-10-14 16:00:00+00', 'del', 'picchetto', 'prt', '2026-10-12 20:00:00+00', NULL, NOW()),
+  ('2026-10-21 16:00:00+00', 'del', 'picchetto', 'prt', '2026-10-19 20:00:00+00', NULL, NOW()),
+-- CET (UTC+1): Oct 28 → Dec 30 (clocks fall back on Oct 25)
+  ('2026-10-28 17:00:00+00', 'del', 'picchetto', 'prt', '2026-10-26 21:00:00+00', NULL, NOW()),
+  ('2026-11-04 17:00:00+00', 'del', 'picchetto', 'prt', '2026-11-02 21:00:00+00', NULL, NOW()),
+  ('2026-11-11 17:00:00+00', 'del', 'picchetto', 'prt', '2026-11-09 21:00:00+00', NULL, NOW()),
+  ('2026-11-18 17:00:00+00', 'del', 'picchetto', 'prt', '2026-11-16 21:00:00+00', NULL, NOW()),
+  ('2026-11-25 17:00:00+00', 'del', 'picchetto', 'prt', '2026-11-23 21:00:00+00', NULL, NOW()),
+  ('2026-12-02 17:00:00+00', 'del', 'picchetto', 'prt', '2026-11-30 21:00:00+00', NULL, NOW()),
+  ('2026-12-09 17:00:00+00', 'del', 'picchetto', 'prt', '2026-12-07 21:00:00+00', NULL, NOW()),
+  ('2026-12-16 17:00:00+00', 'del', 'picchetto', 'prt', '2026-12-14 21:00:00+00', NULL, NOW()),
+  ('2026-12-23 17:00:00+00', 'del', 'picchetto', 'prt', '2026-12-21 21:00:00+00', NULL, NOW()),
+  ('2026-12-30 17:00:00+00', 'del', 'picchetto', 'prt', '2026-12-28 21:00:00+00', NULL, NOW());
+
+-- ── Weekly Friday deliveries (Pedro/Arcella) — May 8, 2026 → Feb 12, 2027 ──
+-- Event time: 18:00 Rome → 16:00 UTC (CEST) / 17:00 UTC (CET)
+-- Deadline:   Wednesday 22:00 Rome (2 days before) → 20:00 UTC (CEST) / 21:00 UTC (CET)
+
+INSERT INTO events (date, type, description, delivery_point, deadline, google_event_id, created_at) VALUES
+-- CEST (UTC+2): May 8 → Oct 23
+  ('2026-05-08 16:00:00+00', 'del', 'pedro', 'arc', '2026-05-06 20:00:00+00', NULL, NOW()),
+  ('2026-05-15 16:00:00+00', 'del', 'pedro', 'arc', '2026-05-13 20:00:00+00', NULL, NOW()),
+  ('2026-05-22 16:00:00+00', 'del', 'pedro', 'arc', '2026-05-20 20:00:00+00', NULL, NOW()),
+  ('2026-05-29 16:00:00+00', 'del', 'pedro', 'arc', '2026-05-27 20:00:00+00', NULL, NOW()),
+  ('2026-06-05 16:00:00+00', 'del', 'pedro', 'arc', '2026-06-03 20:00:00+00', NULL, NOW()),
+  ('2026-06-12 16:00:00+00', 'del', 'pedro', 'arc', '2026-06-10 20:00:00+00', NULL, NOW()),
+  ('2026-06-19 16:00:00+00', 'del', 'pedro', 'arc', '2026-06-17 20:00:00+00', NULL, NOW()),
+  ('2026-06-26 16:00:00+00', 'del', 'pedro', 'arc', '2026-06-24 20:00:00+00', NULL, NOW()),
+  ('2026-07-03 16:00:00+00', 'del', 'pedro', 'arc', '2026-07-01 20:00:00+00', NULL, NOW()),
+  ('2026-07-10 16:00:00+00', 'del', 'pedro', 'arc', '2026-07-08 20:00:00+00', NULL, NOW()),
+  ('2026-07-17 16:00:00+00', 'del', 'pedro', 'arc', '2026-07-15 20:00:00+00', NULL, NOW()),
+  ('2026-07-24 16:00:00+00', 'del', 'pedro', 'arc', '2026-07-22 20:00:00+00', NULL, NOW()),
+  ('2026-07-31 16:00:00+00', 'del', 'pedro', 'arc', '2026-07-29 20:00:00+00', NULL, NOW()),
+  ('2026-08-07 16:00:00+00', 'del', 'pedro', 'arc', '2026-08-05 20:00:00+00', NULL, NOW()),
+  ('2026-08-14 16:00:00+00', 'del', 'pedro', 'arc', '2026-08-12 20:00:00+00', NULL, NOW()),
+  ('2026-08-21 16:00:00+00', 'del', 'pedro', 'arc', '2026-08-19 20:00:00+00', NULL, NOW()),
+  ('2026-08-28 16:00:00+00', 'del', 'pedro', 'arc', '2026-08-26 20:00:00+00', NULL, NOW()),
+  ('2026-09-04 16:00:00+00', 'del', 'pedro', 'arc', '2026-09-02 20:00:00+00', NULL, NOW()),
+  ('2026-09-11 16:00:00+00', 'del', 'pedro', 'arc', '2026-09-09 20:00:00+00', NULL, NOW()),
+  ('2026-09-18 16:00:00+00', 'del', 'pedro', 'arc', '2026-09-16 20:00:00+00', NULL, NOW()),
+  ('2026-09-25 16:00:00+00', 'del', 'pedro', 'arc', '2026-09-23 20:00:00+00', NULL, NOW()),
+  ('2026-10-02 16:00:00+00', 'del', 'pedro', 'arc', '2026-09-30 20:00:00+00', NULL, NOW()),
+  ('2026-10-09 16:00:00+00', 'del', 'pedro', 'arc', '2026-10-07 20:00:00+00', NULL, NOW()),
+  ('2026-10-16 16:00:00+00', 'del', 'pedro', 'arc', '2026-10-14 20:00:00+00', NULL, NOW()),
+  ('2026-10-23 16:00:00+00', 'del', 'pedro', 'arc', '2026-10-21 20:00:00+00', NULL, NOW()),
+-- CET (UTC+1): Oct 30 → Feb 12 (clocks fall back on Oct 25)
+  ('2026-10-30 17:00:00+00', 'del', 'pedro', 'arc', '2026-10-28 21:00:00+00', NULL, NOW()),
+  ('2026-11-06 17:00:00+00', 'del', 'pedro', 'arc', '2026-11-04 21:00:00+00', NULL, NOW()),
+  ('2026-11-13 17:00:00+00', 'del', 'pedro', 'arc', '2026-11-11 21:00:00+00', NULL, NOW()),
+  ('2026-11-20 17:00:00+00', 'del', 'pedro', 'arc', '2026-11-18 21:00:00+00', NULL, NOW()),
+  ('2026-11-27 17:00:00+00', 'del', 'pedro', 'arc', '2026-11-25 21:00:00+00', NULL, NOW()),
+  ('2026-12-04 17:00:00+00', 'del', 'pedro', 'arc', '2026-12-02 21:00:00+00', NULL, NOW()),
+  ('2026-12-11 17:00:00+00', 'del', 'pedro', 'arc', '2026-12-09 21:00:00+00', NULL, NOW()),
+  ('2026-12-18 17:00:00+00', 'del', 'pedro', 'arc', '2026-12-16 21:00:00+00', NULL, NOW()),
+  ('2026-12-25 17:00:00+00', 'del', 'pedro', 'arc', '2026-12-23 21:00:00+00', NULL, NOW()),
+-- CET continues into 2027 (CEST resumes Mar 28, 2027)
+  ('2027-01-01 17:00:00+00', 'del', 'pedro', 'arc', '2026-12-30 21:00:00+00', NULL, NOW()),
+  ('2027-01-08 17:00:00+00', 'del', 'pedro', 'arc', '2027-01-06 21:00:00+00', NULL, NOW()),
+  ('2027-01-15 17:00:00+00', 'del', 'pedro', 'arc', '2027-01-13 21:00:00+00', NULL, NOW()),
+  ('2027-01-22 17:00:00+00', 'del', 'pedro', 'arc', '2027-01-20 21:00:00+00', NULL, NOW()),
+  ('2027-01-29 17:00:00+00', 'del', 'pedro', 'arc', '2027-01-27 21:00:00+00', NULL, NOW()),
+  ('2027-02-05 17:00:00+00', 'del', 'pedro', 'arc', '2027-02-03 21:00:00+00', NULL, NOW()),
+  ('2027-02-12 17:00:00+00', 'del', 'pedro', 'arc', '2027-02-10 21:00:00+00', NULL, NOW());
+
+-- ── Saturday involvement events — Jun, Jul, Aug, first 2 weeks Sep 2026 ───────
+-- Event time: 08:00 Rome (CEST, UTC+2) → 06:00 UTC
+
+INSERT INTO events (date, type, description, delivery_point, deadline, google_event_id, created_at) VALUES
+-- June (4 Saturdays)
+  ('2026-06-06 06:00:00+00', 'inv', 'lavori in campo', NULL, NULL, NULL, NOW()),
+  ('2026-06-13 06:00:00+00', 'inv', 'lavori in campo', NULL, NULL, NULL, NOW()),
+  ('2026-06-20 06:00:00+00', 'inv', 'lavori in campo', NULL, NULL, NULL, NOW()),
+  ('2026-06-27 06:00:00+00', 'inv', 'lavori in campo', NULL, NULL, NULL, NOW()),
+-- July (4 Saturdays)
+  ('2026-07-04 06:00:00+00', 'inv', 'lavori in campo', NULL, NULL, NULL, NOW()),
+  ('2026-07-11 06:00:00+00', 'inv', 'lavori in campo', NULL, NULL, NULL, NOW()),
+  ('2026-07-18 06:00:00+00', 'inv', 'lavori in campo', NULL, NULL, NULL, NOW()),
+  ('2026-07-25 06:00:00+00', 'inv', 'lavori in campo', NULL, NULL, NULL, NOW()),
+-- August (5 Saturdays)
+  ('2026-08-01 06:00:00+00', 'inv', 'lavori in campo', NULL, NULL, NULL, NOW()),
+  ('2026-08-08 06:00:00+00', 'inv', 'lavori in campo', NULL, NULL, NULL, NOW()),
+  ('2026-08-15 06:00:00+00', 'inv', 'lavori in campo', NULL, NULL, NULL, NOW()),
+  ('2026-08-22 06:00:00+00', 'inv', 'lavori in campo', NULL, NULL, NULL, NOW()),
+  ('2026-08-29 06:00:00+00', 'inv', 'lavori in campo', NULL, NULL, NULL, NOW()),
+-- September (first 2 Saturdays)
+  ('2026-09-05 06:00:00+00', 'inv', 'lavori in campo', NULL, NULL, NULL, NOW()),
+  ('2026-09-12 06:00:00+00', 'inv', 'lavori in campo', NULL, NULL, NULL, NOW());
 
 -- ── involvement_subscriptions ─────────────────────────────────────────────────
 
-INSERT INTO involvement_subscriptions (id, event_id, quota_owner_id, participants, duration, pranzo) VALUES
-  (1, 3, 1, '["Marco Rossi", "Anna Rossi"]', 'tutto il giorno', 'Porto focaccia da condividere'),
-  (2, 3, 2, '["Giulia Bianchi"]',             'mattina',         NULL);
-
-SELECT setval('involvement_subscriptions_id_seq', (SELECT MAX(id) FROM involvement_subscriptions));
+INSERT INTO involvement_subscriptions (event_id, quota_owner_id, participants, duration, pranzo) VALUES
+  (3, 1, '["Marco Rossi", "Anna Rossi"]', 'tutto il giorno', 'Porto focaccia da condividere'),
+  (3, 2, '["Giulia Bianchi"]',             'mattina',         NULL);
 
 -- ── delivery_changes ─────────────────────────────────────────────────────────
 
-INSERT INTO delivery_changes (id, event_id, quota_owner_id, new_delivery_point, description) VALUES
-  (1, 2, 3, 'arc', 'Al mio posto ritira mio fratello.');
-
-SELECT setval('delivery_changes_id_seq', (SELECT MAX(id) FROM delivery_changes));
+INSERT INTO delivery_changes (event_id, quota_owner_id, new_delivery_point, description) VALUES
+  (2, 3, 'arc', 'Al mio posto ritira mio fratello.');
 
 -- ── recipients ───────────────────────────────────────────────────────────────
 
