@@ -69,11 +69,11 @@ CREATE TRIGGER accounts_updated_at
 
 CREATE TABLE events (
   id              SERIAL      PRIMARY KEY,
-  date            DATE        NOT NULL,
+  date            TIMESTAMPTZ NOT NULL,
   type            VARCHAR(3)  NOT NULL CHECK (type IN ('inv', 'del', 'evt')),
   description     TEXT,
   delivery_point  VARCHAR(3)  CHECK (delivery_point IN ('prt', 'arc', 'mrn')),
-  deadline        DATE,
+  deadline        TIMESTAMPTZ,
   google_event_id TEXT,
   created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 

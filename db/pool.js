@@ -39,6 +39,11 @@ if (process.env.DATABASE_URL) {
     connectionTimeoutMillis: 65000, // Render free tier can take ~50s to wake up
   });
 
+  // Always use Rome timezone so TIMESTAMPTZ values are interpreted/returned correctly
+  pool.on('connect', (client) => {
+    client.query("SET TIME ZONE 'Europe/Rome'").catch(() => {});
+  });
+
   // Test the connection at startup and log the outcome
   pool.connect((err, client, release) => {
     if (err) {

@@ -31,7 +31,7 @@ router.post('/', [
   if (!pool) {
     const ev = events.find((e) => e.id === event_id && e.type === 'del');
     if (!ev) return res.status(404).json({ message: 'Delivery event not found' });
-    if (ev.deadline && new Date(ev.deadline) < new Date(new Date().toDateString())) {
+    if (ev.deadline && new Date(ev.deadline) <= new Date()) {
       return res.status(422).json({ message: 'Il termine per le modifiche è scaduto.' });
     }
     const owner = quotaOwners.find((o) => o.id === quota_owner_id);
@@ -42,11 +42,13 @@ router.post('/', [
   }
 
   try {
-    // Verify event exists and deadline not passed
-    const { rows: evRows } = await pool.query("SELECT * FROM events WHERE id = $1 AND type = 'del'", [event_id]);
+    // Verify event exists and deadline not passed (comparison done in DB with Rome timezone)
+    const { rows: evRows } = await pool.query(
+      "SELECT *, (deadline IS NOT NULL AND deadline < NOW()) AS deadline_passed FROM events WHERE id = $1 AND type = 'del'",
+      [event_id]
+    );
     if (!evRows.length) return res.status(404).json({ message: 'Delivery event not found' });
-    const ev = evRows[0];
-    if (ev.deadline && new Date(ev.deadline) < new Date(new Date().toDateString())) {
+    if (evRows[0].deadline_passed) {
       return res.status(422).json({ message: 'Il termine per le modifiche è scaduto.' });
     }
     const { rows } = await pool.query(
