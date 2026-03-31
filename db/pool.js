@@ -36,6 +36,7 @@ if (process.env.DATABASE_URL) {
   pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false },
+    connectionTimeoutMillis: 65000, // Render free tier can take ~50s to wake up
   });
 
   // Test the connection at startup and log the outcome
