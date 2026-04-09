@@ -44,15 +44,27 @@ if (process.env.DATABASE_URL) {
     client.query("SET TIME ZONE 'Europe/Rome'").catch(() => {});
   });
 
-  // Test the connection at startup and log the outcome
-  pool.connect((err, client, release) => {
-    if (err) {
-      console.error('[pool] startup connection test FAILED:', err.message);
-    } else {
-      console.log('[pool] startup connection test OK');
-      release();
-    }
-  });
+  // Test the connection at startup with retry logic.
+  // EAI_AGAIN means DNS is not yet ready (transient failure on Render cold starts).
+  const RETRY_DELAYS_MS = [2000, 5000, 10000, 20000, 30000]; // ~67s total
+  const testConnection = (attempt) => {
+    pool.connect((err, client, release) => {
+      if (!err) {
+        console.log(`[pool] startup connection test OK (attempt ${attempt + 1})`);
+        release();
+        return;
+      }
+      const isTransientDns = err.code === 'EAI_AGAIN' || err.code === 'ENOTFOUND';
+      const delay = RETRY_DELAYS_MS[attempt];
+      if (isTransientDns && delay !== undefined) {
+        console.warn(`[pool] startup connection test FAILED (attempt ${attempt + 1}): ${err.message} — retrying in ${delay}ms`);
+        setTimeout(() => testConnection(attempt + 1), delay);
+      } else {
+        console.error(`[pool] startup connection test FAILED: ${err.message}`);
+      }
+    });
+  };
+  testConnection(0);
 } else {
   console.log('[pool] No DATABASE_URL — running in mock mode');
 }
