@@ -32,12 +32,14 @@ const involvementSubscriptions = [
     participants: ['Marco Rossi', 'Anna Rossi'],
     duration: 'tutto il giorno',
     pranzo: 'Porto focaccia da condividere',
+    mezzo_trasporto: 'macchina 4 posti',
   },
   {
     id: 2, event_id: 3, quota_owner_id: 2,
     participants: ['Giulia Bianchi'],
     duration: 'mattina',
     pranzo: null,
+    mezzo_trasporto: null,
   },
 ];
 

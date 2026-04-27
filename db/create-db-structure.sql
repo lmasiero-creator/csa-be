@@ -98,6 +98,7 @@ CREATE TABLE involvement_subscriptions (
   participants   JSONB       NOT NULL DEFAULT '[]',
   duration       VARCHAR(512),
   pranzo         VARCHAR(512),
+  mezzo_trasporto VARCHAR(512),
   created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
