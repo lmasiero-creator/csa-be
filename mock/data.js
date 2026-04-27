@@ -49,6 +49,21 @@ const deliveryChanges = [
     new_delivery_point: 'arc',
     description: 'Al mio posto ritira mio fratello.',
   },
+  {
+    id: 2, event_id: 8, quota_owner_id: 1,
+    new_delivery_point: 'arc',
+    description: 'Questa settimana sono fuori città, ritira per me mia moglie Anna.',
+  },
+  {
+    id: 3, event_id: 8, quota_owner_id: 2,
+    new_delivery_point: 'mrn',
+    description: 'Dono la mia quota alla cassetta di scambio.',
+  },
+  {
+    id: 4, event_id: 8, quota_owner_id: 4,
+    new_delivery_point: 'prt',
+    description: 'Al mio posto ritira mio marito, stesso punto.',
+  },
 ];
 
 const accounts = [

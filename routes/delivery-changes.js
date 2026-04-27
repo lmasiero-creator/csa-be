@@ -6,11 +6,21 @@ const { deliveryChanges, events, quotaOwners, nextId } = require('../mock/data')
 
 const router = express.Router();
 
-// GET /api/delivery-changes
-router.get('/', async (_req, res) => {
-  if (!pool) return res.json(deliveryChanges);
+// GET /api/delivery-changes[?event_id=<id>]
+router.get('/', async (req, res) => {
+  const eventId = req.query.event_id ? parseInt(req.query.event_id, 10) : null;
+  if (!pool) {
+    const result = eventId
+      ? deliveryChanges.filter((c) => c.event_id === eventId)
+      : deliveryChanges;
+    return res.json(result);
+  }
   try {
-    const { rows } = await pool.query('SELECT * FROM delivery_changes ORDER BY created_at');
+    const query = eventId
+      ? 'SELECT * FROM delivery_changes WHERE event_id = $1 ORDER BY created_at'
+      : 'SELECT * FROM delivery_changes ORDER BY created_at';
+    const params = eventId ? [eventId] : [];
+    const { rows } = await pool.query(query, params);
     res.json(rows);
   } catch (err) {
     res.status(500).json({ message: err.message });
