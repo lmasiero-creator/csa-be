@@ -17,13 +17,13 @@ const quotaOwners = [
 // project start date (March 2026). Adjust if needed.
 const events = [
   { id: 1, date: '2026-04-05', type: 'inv', description: 'Raccolta piselli. Consiglio: porta l\'impermeabile', delivery_point: null, deadline: null },
-  { id: 2, date: '2026-04-07', type: 'del', description: 'Consegna settimanale — Portello',  delivery_point: 'prt', deadline: '2026-04-05' },
+  { id: 2, date: '2026-04-07', type: 'del', description: 'Portello',  delivery_point: 'prt', deadline: '2026-04-05' },
   { id: 3, date: '2026-04-12', type: 'inv', description: 'Trapianto pomodori',                delivery_point: null, deadline: null },
-  { id: 4, date: '2026-04-14', type: 'del', description: 'Consegna settimanale — Arcella',   delivery_point: 'arc', deadline: '2026-04-12' },
+  { id: 4, date: '2026-04-14', type: 'del', description: 'Arcella',   delivery_point: 'arc', deadline: '2026-04-12' },
   { id: 5, date: '2026-04-15', type: 'evt', description: 'Assemblea soci',                    delivery_point: null, deadline: null },
-  { id: 6, date: '2026-04-21', type: 'del', description: 'Consegna settimanale — Mirano',    delivery_point: 'mrn', deadline: '2026-04-19' },
+  { id: 6, date: '2026-04-21', type: 'del', description: 'Mirano',    delivery_point: 'mrn', deadline: '2026-04-19' },
   { id: 7, date: '2026-05-03', type: 'inv', description: 'Raccolta fragole',                  delivery_point: null, deadline: null },
-  { id: 8, date: '2026-05-06', type: 'del', description: 'Consegna settimanale — Portello',  delivery_point: 'prt', deadline: '2026-05-04' },
+  { id: 8, date: '2026-05-06', type: 'del', description: 'Portello',  delivery_point: 'prt', deadline: '2026-05-04' },
 ];
 
 const involvementSubscriptions = [
