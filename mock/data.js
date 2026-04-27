@@ -24,6 +24,7 @@ const events = [
   { id: 6, date: '2026-04-21', type: 'del', description: 'Mirano',    delivery_point: 'mrn', deadline: '2026-04-19' },
   { id: 7, date: '2026-05-03', type: 'inv', description: 'Raccolta fragole',                  delivery_point: null, deadline: null },
   { id: 8, date: '2026-05-06', type: 'del', description: 'Portello',  delivery_point: 'prt', deadline: '2026-05-04' },
+  { id: 9, date: '2026-04-29', type: 'inv', description: 'Test job',                          delivery_point: null, deadline: null },
 ];
 
 const involvementSubscriptions = [

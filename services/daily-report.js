@@ -56,26 +56,23 @@ function quotaLabel(key) {
 // ── Email builders ────────────────────────────────────────────────────────────
 
 function buildDeliveryHtml(eventDate, deliveryPoint, changes) {
-  const rows = changes
-    .map(
-      (c) => `
+  let changesSection;
+  if (!changes.length) {
+    changesSection = `
+  <p style="color:#146c43;font-weight:bold;">Nessuna variazione comunicata per questa distribuzione.</p>`;
+  } else {
+    const rows = changes
+      .map(
+        (c) => `
       <tr>
         <td style="padding:6px 10px;">${c.name} ${c.surname}</td>
         <td style="padding:6px 10px;">${quotaLabel(c.quota)}</td>
         <td style="padding:6px 10px;">${dpLabel(c.new_delivery_point)}</td>
         <td style="padding:6px 10px;">${c.description || '—'}</td>
       </tr>`
-    )
-    .join('');
-
-  return `
-<!DOCTYPE html>
-<html lang="it">
-<body style="font-family:sans-serif;font-size:15px;color:#333;max-width:700px;margin:0 auto;">
-  <h2 style="color:#2d6a4f;">Variazioni di consegna</h2>
-  <p>Le seguenti variazioni sono state comunicate per la distribuzione del
-     <strong>${formatDate(eventDate)}</strong> —
-     punto <strong>${dpLabel(deliveryPoint)}</strong>:</p>
+      )
+      .join('');
+    changesSection = `
   <table border="1" cellpadding="0" cellspacing="0"
          style="border-collapse:collapse;width:100%;font-size:14px;">
     <thead style="background:#d8f3dc;">
@@ -89,7 +86,17 @@ function buildDeliveryHtml(eventDate, deliveryPoint, changes) {
     <tbody>
       ${rows}
     </tbody>
-  </table>
+  </table>`;
+  }
+
+  return `
+<!DOCTYPE html>
+<html lang="it">
+<body style="font-family:sans-serif;font-size:15px;color:#333;max-width:700px;margin:0 auto;">
+  <h2 style="color:#2d6a4f;">Variazioni di consegna</h2>
+  <p>Distribuzione del <strong>${formatDate(eventDate)}</strong> —
+     punto <strong>${dpLabel(deliveryPoint)}</strong>.</p>
+  ${changesSection}
   <p style="color:#aaa;font-size:12px;margin-top:32px;">
     Messaggio automatico CSA — non rispondere a questa email.
   </p>
@@ -98,12 +105,21 @@ function buildDeliveryHtml(eventDate, deliveryPoint, changes) {
 }
 
 function buildInvolvementHtml(eventDate, eventDescription, subscriptions) {
-  const rows = subscriptions
-    .map((s) => {
-      const parts = Array.isArray(s.participants)
-        ? s.participants.join(', ')
-        : s.participants || '—';
-      return `
+  const descPart = eventDescription
+    ? ` — <em>${eventDescription}</em>`
+    : '';
+
+  let participantsSection;
+  if (!subscriptions.length) {
+    participantsSection = `
+  <p style="color:#b02a37;font-weight:bold;">Nessun socio si è ancora iscritto a questa attività.</p>`;
+  } else {
+    const rows = subscriptions
+      .map((s) => {
+        const parts = Array.isArray(s.participants)
+          ? s.participants.join(', ')
+          : s.participants || '—';
+        return `
       <tr>
         <td style="padding:6px 10px;">${s.name} ${s.surname}</td>
         <td style="padding:6px 10px;">${parts}</td>
@@ -111,19 +127,9 @@ function buildInvolvementHtml(eventDate, eventDescription, subscriptions) {
         <td style="padding:6px 10px;">${s.pranzo || '—'}</td>
         <td style="padding:6px 10px;">${s.mezzo_trasporto || '—'}</td>
       </tr>`;
-    })
-    .join('');
-
-  const descPart = eventDescription
-    ? ` — <em>${eventDescription}</em>`
-    : '';
-
-  return `
-<!DOCTYPE html>
-<html lang="it">
-<body style="font-family:sans-serif;font-size:15px;color:#333;max-width:700px;margin:0 auto;">
-  <h2 style="color:#2d6a4f;">Attività in campo</h2>
-  <p>Domani, <strong>${formatDate(eventDate)}</strong>${descPart}.</p>
+      })
+      .join('');
+    participantsSection = `
   <p>Partecipanti iscritti:</p>
   <table border="1" cellpadding="0" cellspacing="0"
          style="border-collapse:collapse;width:100%;font-size:14px;">
@@ -139,7 +145,16 @@ function buildInvolvementHtml(eventDate, eventDescription, subscriptions) {
     <tbody>
       ${rows}
     </tbody>
-  </table>
+  </table>`;
+  }
+
+  return `
+<!DOCTYPE html>
+<html lang="it">
+<body style="font-family:sans-serif;font-size:15px;color:#333;max-width:700px;margin:0 auto;">
+  <h2 style="color:#2d6a4f;">Attività in campo</h2>
+  <p>Domani, <strong>${formatDate(eventDate)}</strong>${descPart}.</p>
+  ${participantsSection}
   <p style="color:#aaa;font-size:12px;margin-top:32px;">
     Messaggio automatico CSA — non rispondere a questa email.
   </p>
@@ -152,19 +167,22 @@ function buildInvolvementHtml(eventDate, eventDescription, subscriptions) {
 /**
  * Run the daily report job.
  *
+ * @param {object}  [opts]
+ * @param {boolean} [opts.dryRun=false]  When true, skip sending emails and
+ *                                        include the generated HTML in the result.
  * @returns {Promise<Array<{type: string, eventDate: string, subject: string,
- *                          sent: boolean, recipients: number}>>}
+ *                          sent: boolean, recipients: number, html?: string}>>}
  */
-async function runDailyReport() {
-  console.log('[job] Daily report started at', new Date().toISOString());
+async function runDailyReport({ dryRun = false } = {}) {
+  const romeNow = new Date().toLocaleString('sv-SE', { timeZone: 'Europe/Rome', hour12: false }).replace(' ', 'T');
+  console.log('[job] Daily report started at', romeNow);
 
-  const now = new Date();
-  const todayStr = now.toISOString().slice(0, 10); // YYYY-MM-DD (UTC)
-
-  // Tomorrow in local server time to match how event dates are stored
-  const tomorrowLocal = new Date(now);
-  tomorrowLocal.setDate(tomorrowLocal.getDate() + 1);
-  const tomorrowStr = tomorrowLocal.toISOString().slice(0, 10);
+  // Derive today/tomorrow from the Rome-local date string (YYYY-MM-DDTHH:MM:SS)
+  const todayStr = romeNow.slice(0, 10);                          // YYYY-MM-DD Rome
+  // Build tomorrow by incrementing the day in UTC then re-reading in Rome tz
+  const [ty, tm, td] = todayStr.split('-').map(Number);
+  const tomorrowUtc = new Date(Date.UTC(ty, tm - 1, td + 1));
+  const tomorrowStr = tomorrowUtc.toLocaleString('sv-SE', { timeZone: 'Europe/Rome', hour12: false }).slice(0, 10);
 
   let deliveryEmails = [];   // [{ eventDate, deliveryPoint, changes[] }]
   let involvementEmails = []; // [{ eventDate, description, subscriptions[] }]
@@ -186,15 +204,16 @@ async function runDailyReport() {
         qo.surname,
         qo.quota
       FROM events e
-      JOIN delivery_changes dc ON dc.event_id = e.id
-      JOIN quota_owners qo     ON qo.id = dc.quota_owner_id
+      LEFT JOIN delivery_changes dc ON dc.event_id = e.id
+      LEFT JOIN quota_owners qo     ON qo.id = dc.quota_owner_id
       WHERE e.type = 'del'
         AND e.deadline::date = CURRENT_DATE
       ORDER BY e.date, qo.surname, qo.name
     `);
 
-    // Group by event_id
+    // Group by event_id — seed every event, then append its changes
     const delByEvent = {};
+    // First pass: ensure every event has an entry (handles zero-change events via LEFT JOIN nulls)
     for (const row of delRows) {
       if (!delByEvent[row.event_id]) {
         delByEvent[row.event_id] = {
@@ -203,16 +222,19 @@ async function runDailyReport() {
           changes: [],
         };
       }
-      delByEvent[row.event_id].changes.push(row);
+      if (row.change_id !== null) {
+        delByEvent[row.event_id].changes.push(row);
+      }
     }
     deliveryEmails = Object.values(delByEvent);
 
-    // Involvement events scheduled for tomorrow
+    // Involvement events scheduled for tomorrow (LEFT JOIN so zero-participant events are included)
     const { rows: invRows } = await pool.query(`
       SELECT
         e.id               AS event_id,
         e.date::text       AS event_date,
         e.description      AS event_description,
+        inv.id             AS sub_id,
         inv.participants,
         inv.duration,
         inv.pranzo,
@@ -220,8 +242,8 @@ async function runDailyReport() {
         qo.name,
         qo.surname
       FROM events e
-      JOIN involvement_subscriptions inv ON inv.event_id = e.id
-      JOIN quota_owners qo               ON qo.id = inv.quota_owner_id
+      LEFT JOIN involvement_subscriptions inv ON inv.event_id = e.id
+      LEFT JOIN quota_owners qo               ON qo.id = inv.quota_owner_id
       WHERE e.type = 'inv'
         AND e.date::date = CURRENT_DATE + INTERVAL '1 day'
       ORDER BY qo.surname, qo.name
@@ -236,7 +258,9 @@ async function runDailyReport() {
           subscriptions: [],
         };
       }
-      invByEvent[row.event_id].subscriptions.push(row);
+      if (row.sub_id !== null) {
+        invByEvent[row.event_id].subscriptions.push(row);
+      }
     }
     involvementEmails = Object.values(invByEvent);
 
@@ -256,13 +280,12 @@ async function runDailyReport() {
           const owner = quotaOwners.find((o) => o.id === dc.quota_owner_id) || {};
           return { ...dc, name: owner.name, surname: owner.surname, quota: owner.quota };
         });
-      if (changes.length) {
-        deliveryEmails.push({
-          eventDate: ev.date,
-          deliveryPoint: ev.delivery_point,
-          changes,
-        });
-      }
+      // Always include the event — the email body signals when no changes were submitted
+      deliveryEmails.push({
+        eventDate: ev.date,
+        deliveryPoint: ev.delivery_point,
+        changes,
+      });
     }
 
     // Involvement events scheduled for tomorrow
@@ -276,13 +299,12 @@ async function runDailyReport() {
           const owner = quotaOwners.find((o) => o.id === s.quota_owner_id) || {};
           return { ...s, name: owner.name, surname: owner.surname };
         });
-      if (subscriptions.length) {
-        involvementEmails.push({
-          eventDate: ev.date,
-          description: ev.description,
-          subscriptions,
-        });
-      }
+      // Always include the event — the email body signals when no one has signed up
+      involvementEmails.push({
+        eventDate: ev.date,
+        description: ev.description,
+        subscriptions,
+      });
     }
 
     recipientList = recipients;
@@ -292,7 +314,7 @@ async function runDailyReport() {
 
   const toAddresses = recipientList.map((r) => r.email).filter(Boolean);
   const smtpReady = !!(process.env.SMTP_USER && process.env.SMTP_PASS);
-  const canSend = smtpReady && toAddresses.length > 0;
+  const canSend = !dryRun && smtpReady && toAddresses.length > 0;
 
   const results = [];
 
@@ -300,7 +322,10 @@ async function runDailyReport() {
     const subject = `distribuzione del ${formatDate(eventDate)} - ${dpLabel(deliveryPoint)}`;
     const html = buildDeliveryHtml(eventDate, deliveryPoint, changes);
 
-    if (canSend) {
+    if (dryRun) {
+      console.log(`[job] DRY-RUN delivery email skipped: ${subject}`);
+      results.push({ type: 'delivery', eventDate, subject, sent: false, dryRun: true, recipients: toAddresses.length, html });
+    } else if (canSend) {
       try {
         const info = await sendMail({ to: toAddresses, subject, html });
         console.log(`[job] Delivery email sent <${info.messageId}> → ${toAddresses.join(', ')}`);
@@ -320,7 +345,10 @@ async function runDailyReport() {
     const subject = `attività in campo del ${formatDate(eventDate)}`;
     const html = buildInvolvementHtml(eventDate, description, subscriptions);
 
-    if (canSend) {
+    if (dryRun) {
+      console.log(`[job] DRY-RUN involvement email skipped: ${subject}`);
+      results.push({ type: 'involvement', eventDate, subject, sent: false, dryRun: true, recipients: toAddresses.length, html });
+    } else if (canSend) {
       try {
         const info = await sendMail({ to: toAddresses, subject, html });
         console.log(`[job] Involvement email sent <${info.messageId}> → ${toAddresses.join(', ')}`);
